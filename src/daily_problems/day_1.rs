@@ -1,4 +1,4 @@
-pub mod day_1 {
+pub mod solutions {
     use itertools::Zip;
     use crate::input::read_input::AocBufReader;
 

@@ -1,8 +1,8 @@
 mod input;
-mod day_2;
+mod daily_problems;
 
 pub use input::read_input::AocBufReader;
-pub use day_2::day_2::{part_1, part_2};
+pub use daily_problems::day_2::solutions::{part_1, part_2};
 
 
 fn main() {

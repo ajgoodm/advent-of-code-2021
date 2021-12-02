@@ -1,4 +1,4 @@
-pub mod day_2 {
+pub mod solutions {
     use std::fs::DirEntry;
 
     use crate::input::read_input::AocBufReader;
