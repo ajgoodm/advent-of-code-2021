@@ -1,12 +1,12 @@
 mod input;
-mod day_1;
+mod day_2;
 
 pub use input::read_input::AocBufReader;
-pub use day_1::day_1::{part_1, part_2};
+pub use day_2::day_2::{part_1};
 
 
 fn main() {
-    let aoc_reader = AocBufReader::from_str("src/data/day_1_pt_1.txt");
-    let result: usize = part_2(aoc_reader);
+    let aoc_reader = AocBufReader::from_str("src/data/day_2_pt_1.txt");
+    let result: isize = part_1(aoc_reader);
     println!("{}", result);
 }
