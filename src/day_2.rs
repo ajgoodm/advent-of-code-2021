@@ -14,22 +14,35 @@ pub mod day_2 {
     struct Submarine {
         x: isize,
         depth: isize,
+        aim: isize,
     }
 
 
     impl Submarine {
         fn new() -> Submarine {
             Submarine {
-                x: 0, depth: 0
+                x: 0, depth: 0, aim: 0
             }
         }
 
-        fn execute_instruction(&mut self, instruction: (Direction, isize)) {
+        fn execute_part_1_instruction(&mut self, instruction: (Direction, isize)) {
             let (direction, distance) = instruction;
             match direction {
                 Direction::Forward => self.x += distance,
                 Direction::Up => self.depth -= distance,
                 Direction::Down => self.depth += distance,
+            }
+        }
+
+        fn execute_part_2_instruction(&mut self, instruction: (Direction, isize)) {
+            let (direction, scalar) = instruction;
+            match direction {
+                Direction::Up => self.aim -= scalar,
+                Direction::Down => self.aim += scalar,
+                Direction::Forward => {
+                    self.x += scalar;
+                    self.depth += self.aim * scalar;
+                }
             }
         }
     }
@@ -58,7 +71,18 @@ pub mod day_2 {
         let instructions = read_input(aoc_reader);
         let mut submarine = Submarine::new();
         for instruction in instructions {
-            submarine.execute_instruction(instruction);
+            submarine.execute_part_1_instruction(instruction);
+        }
+        
+        submarine.x.abs() * submarine.depth.abs()
+    }
+
+
+    pub fn part_2(aoc_reader: AocBufReader) -> isize {
+        let instructions = read_input(aoc_reader);
+        let mut submarine = Submarine::new();
+        for instruction in instructions {
+            submarine.execute_part_2_instruction(instruction);
         }
         
         submarine.x.abs() * submarine.depth.abs()
