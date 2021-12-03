@@ -1,5 +1,6 @@
-mod input;
 mod daily_problems;
+mod input;
+mod utils;
 
 pub use input::read_input::AocBufReader;
 pub use daily_problems::day_3::solutions::{part_1, part_2};

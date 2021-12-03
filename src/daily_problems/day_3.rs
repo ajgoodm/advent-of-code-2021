@@ -2,6 +2,7 @@ pub mod solutions {
     use std::collections::HashMap;
 
     use crate::input::read_input::AocBufReader;
+    use crate::utils::conversion::binary_string_to_usize;
 
     fn _get_one_bit_counts(binary_strings: &Vec<String>) -> (HashMap<usize, usize>, usize) {
         let mut n_lines: usize = 0;
@@ -68,17 +69,6 @@ pub mod solutions {
             idx += 1;
         }
         (oxygen_strings[0].to_string(), co2_strings[0].to_string())
-    }
-
-    fn binary_string_to_usize(binary: String) -> usize {
-        binary.chars().rev().enumerate().map(|(idx, c)| {
-                match c {
-                    '0' => 0,
-                    '1' => 2usize.pow(idx as u32),
-                    _ => panic!("unexpected char parsing binary")
-                }
-            }
-        ).sum::<usize>()
     }
 
     pub fn part_1(aoc_reader: AocBufReader) -> usize {
