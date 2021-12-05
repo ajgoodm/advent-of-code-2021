@@ -43,9 +43,8 @@ pub mod solutions {
     }
 
     fn read_input_pt_2(aoc_reader: AocBufReader) -> (String, String) {
-        let binary_strings: Vec<String> = aoc_reader.collect();
-        let mut oxygen_strings: Vec<String> = binary_strings.iter().map(|x| x.to_string()).collect();
-        let mut co2_strings: Vec<String> = binary_strings;
+        let mut oxygen_strings: Vec<String> = aoc_reader.collect();
+        let mut co2_strings: Vec<String> = oxygen_strings.iter().map(|x| x.to_string()).collect();
 
         let mut idx: usize = 0;
         while oxygen_strings.len() > 1 {
