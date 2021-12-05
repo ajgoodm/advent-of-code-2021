@@ -1,16 +1,19 @@
 pub mod solutions {
+    use std::collections::HashSet;
+
     use crate::input::read_input::AocBufReader;
 
     struct BingoBoard {
+        id: usize,
         board: [[usize; 5]; 5],
         called: [[bool; 5]; 5]
     }
 
 
     impl BingoBoard {
-        fn new(board: [[usize; 5]; 5]) -> BingoBoard {
+        fn new(id: usize, board: [[usize; 5]; 5]) -> BingoBoard {
             BingoBoard {
-                board: board, called: [[false; 5]; 5]
+                id: id, board: board, called: [[false; 5]; 5]
             }
         }
 
@@ -55,7 +58,7 @@ pub mod solutions {
     }
 
 
-    fn parse_board(aoc_reader: &mut AocBufReader) -> BingoBoard {
+    fn parse_board(id: usize, aoc_reader: &mut AocBufReader) -> BingoBoard {
         let mut board: [[usize; 5]; 5] = [[0usize; 5]; 5];
         for row_idx in 0usize..5 {
             let data: Vec<usize> = aoc_reader.next().unwrap()
@@ -66,7 +69,7 @@ pub mod solutions {
             }
         }
 
-        BingoBoard::new(board)
+        BingoBoard::new(id, board)
     }
 
 
@@ -75,8 +78,10 @@ pub mod solutions {
             .split(",").map(|x| x.parse::<usize>().unwrap()).collect();
 
         let mut boards: Vec<BingoBoard> = vec![];
+        let mut board_id: usize = 0;
         while let Some(_) = aoc_reader.next() {
-            boards.push(parse_board(&mut aoc_reader));
+            boards.push(parse_board(board_id, &mut aoc_reader));
+            board_id += 1;
         }
 
         (numbers, boards)
@@ -100,47 +105,21 @@ pub mod solutions {
 
     pub fn part_2(aoc_reader: AocBufReader) -> usize {
         let (numbers, mut boards): (Vec<usize>, Vec<BingoBoard>) = read_input(aoc_reader);
-        let mut board_took_mth_place_with_val: Vec<Option<(usize,usize)>> = vec![None; boards.len()];
+        let mut winning_board_ids: HashSet<usize> = HashSet::new();
 
-        let mut mth_place: usize = 1;
+        let mut last_winning_return_value: Option<usize> = None;
         for number in numbers {
-            for (nth_board, board) in boards.iter_mut().enumerate() {
-                match board_took_mth_place_with_val[nth_board] {
-                    Some(_) => (),  // this board already won, don't keep marking it
-                    None => {
-                        board.mark_number(number);
-                        if board.won() {
-                            board_took_mth_place_with_val[nth_board] = Some((mth_place, number));
-                            mth_place += 1;
-                        }
+            for (board_id, board) in boards.iter_mut().enumerate() {
+                if !winning_board_ids.contains(&board_id) {
+                    board.mark_number(number);
+                    if board.won() {
+                        winning_board_ids.insert(board_id);
+                        last_winning_return_value = Some(board.sum_unmarked() * number)
                     }
                 }
             }
         }
 
-        let mut last_place_board_index: Option<usize> = None;
-        let mut last_place: Option<usize> = None;
-        for (board_idx, place_and_val) in board_took_mth_place_with_val.iter().enumerate() {
-            match place_and_val {
-                Some((place, _)) => {
-                    match last_place {
-                        Some(previous_last_place) => if *place > previous_last_place {
-                            last_place = Some(*place);
-                            last_place_board_index = Some(board_idx)
-                        },
-                        None => last_place = Some(*place)
-                    }
-                },
-                None => ()
-            }
-        }
-
-        match last_place_board_index {
-            Some(idx) => {
-                let (_, final_val) = board_took_mth_place_with_val[idx].unwrap();
-                return boards[idx].sum_unmarked() * final_val
-            },
-            None => panic!("No board won?")
-        }
+        last_winning_return_value.unwrap()
     }
 }
