@@ -10,3 +10,10 @@ pub mod conversion {
         ).sum::<usize>()
     }
 }
+
+
+pub mod stats {
+    pub fn f64_avg_usize(vals: &Vec<usize>) -> f64 {
+        vals.iter().sum::<usize>() as f64 / vals.len() as f64
+    }
+}
