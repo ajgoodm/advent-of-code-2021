@@ -22,7 +22,6 @@ pub mod solutions {
 
 
     struct WireMapping {
-        mapping: HashMap<char, Option<char>>,
         str_to_val: HashMap<String, usize>,
         val_to_str: HashMap<usize, String>
     }
@@ -31,7 +30,6 @@ pub mod solutions {
     impl WireMapping {
         fn new() -> WireMapping {
             WireMapping {
-                mapping: vec!['a', 'b', 'c', 'd', 'e', 'f', 'g'].into_iter().map(|c| (c, None)).collect(),
                 str_to_val: HashMap::new(),
                 val_to_str: HashMap::new()
             }
