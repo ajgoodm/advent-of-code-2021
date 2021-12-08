@@ -21,42 +21,118 @@ pub mod solutions {
     }
 
 
-    lazy_static! {
-        static ref NUM_TO_WIRES: HashMap<usize, HashSet<char>> = vec![
-            (0, vec!['a', 'b', 'c', 'e', 'f', 'g'].into_iter().collect()),
-            (1, vec!['c', 'f'].into_iter().collect()),
-            (2, vec!['a', 'c', 'd', 'e', 'g'].into_iter().collect()),
-            (3, vec!['a', 'c', 'd', 'f', 'g'].into_iter().collect()),
-            (4, vec!['b', 'c', 'd', 'f'].into_iter().collect()),
-            (5, vec!['a', 'b', 'd', 'f', 'g'].into_iter().collect()),
-            (6, vec!['a', 'b', 'd', 'e', 'f' ,'g'].into_iter().collect()),
-            (7, vec!['a', 'c', 'f'].into_iter().collect()),
-            (8, vec!['a', 'b', 'c', 'd', 'e', 'f', 'g'].into_iter().collect()),
-            (9, vec!['a', 'b', 'c', 'd', 'f', 'g'].into_iter().collect()),
-        ].into_iter().collect();
-    }
-
-
     struct WireMapping {
-        mapping: HashMap<char, Option<char>>
+        mapping: HashMap<char, Option<char>>,
+        str_to_val: HashMap<String, usize>,
+        val_to_str: HashMap<usize, String>
     }
 
 
     impl WireMapping {
         fn new() -> WireMapping {
             WireMapping {
-                mapping: vec!['a', 'b', 'c', 'd', 'e', 'f', 'g'].into_iter().map(|c| (c, None)).collect()
+                mapping: vec!['a', 'b', 'c', 'd', 'e', 'f', 'g'].into_iter().map(|c| (c, None)).collect(),
+                str_to_val: HashMap::new(),
+                val_to_str: HashMap::new()
             }
         }
 
-        fn build(&mut self, patterns: Vec<&str>) {
+        fn get_patterns_of_len(patterns: &[String], n: usize) -> Vec<&String> {
+            patterns.iter().filter(|pattern| pattern.len() == n).collect()
+        }
+
+
+        fn get_pattern_of_len(patterns: &[String], n: usize) -> &String {
+            let patterns = WireMapping::get_patterns_of_len(&patterns[..], n);
+            assert_eq!(patterns.len(), 1);
+
+            patterns[0]
+        }
+
+
+        fn add_entry(&mut self, str: &String, val: usize) {
+            self.str_to_val.insert(str.to_owned(), val);
+            self.val_to_str.insert(val, str.to_owned());
+        }
+
+
+        fn get_chars_for_num(&self, n: usize) -> Option<HashSet<char>> {
+            match self.val_to_str.get(&n) {
+                Some(str) => Some(str.chars().collect::<HashSet<char>>()),
+                None => None
+            }
 
         }
 
-        fn decode(&self, digits: Vec<&str>) -> usize {
-            1
+
+        fn build(&mut self, patterns: Vec<String>) {
+            let one_str: &String = WireMapping::get_pattern_of_len(&patterns, 2);
+            self.add_entry(one_str, 1usize);
+
+            let seven_str: &String = WireMapping::get_pattern_of_len(&patterns, 3);
+            self.add_entry(seven_str, 7usize);
+
+            let four_str: &String = WireMapping::get_pattern_of_len(&patterns, 4);
+            self.add_entry(four_str, 4usize);
+
+            let eight_str: &String = WireMapping::get_pattern_of_len(&patterns, 7);
+            self.add_entry(eight_str, 8usize);
+
+            let strs_of_len_5: Vec<&String> = WireMapping::get_patterns_of_len(&patterns, 5);
+            let strs_of_len_6: Vec<&String> = WireMapping::get_patterns_of_len(&patterns, 6);
+            for str in strs_of_len_5.iter() {
+                let str_chars: HashSet<char> = str.chars().collect();
+                if self.get_chars_for_num(1usize).unwrap().is_subset(&str_chars) {
+                    self.add_entry(str, 3usize);
+                }
+            }
+
+            for str in strs_of_len_6.iter() {
+                let str_chars: HashSet<char> = str.chars().collect();
+                if !self.get_chars_for_num(1usize).unwrap().is_subset(&str_chars) {
+                    self.add_entry(str, 6usize);
+                }
+            }
+
+            for str in strs_of_len_5.iter() {
+                let str_chars: HashSet<char> = str.chars().collect();
+                if str_chars == self.get_chars_for_num(3).unwrap() {
+                    continue
+                } else if str_chars.is_subset(&self.get_chars_for_num(6usize).unwrap()) {
+                    self.add_entry(str, 5usize);
+                } else {
+                    self.add_entry(str, 2usize);
+                }
+            }
+
+            for str in strs_of_len_6.iter() {
+                let str_chars: HashSet<char> = str.chars().collect();
+                if str_chars == self.get_chars_for_num(6).unwrap() {
+                    continue
+                } else if self.get_chars_for_num(5).unwrap().is_subset(&str_chars) {
+                    self.add_entry(str, 9usize);
+                } else {
+                    self.add_entry(str, 0usize);
+                }
+            }
         }
 
+        fn get_num_for_digit(&self, digit: &String) -> usize {
+            let digit_chars: HashSet<char> = digit.chars().collect();
+
+            for val in 0..10 {
+                if self.get_chars_for_num(val).unwrap() == digit_chars {
+                    return val
+                }
+            }
+            panic!("Unmapped digit {}", digit);
+        }
+
+        fn decode(&self, digits: Vec<String>) -> usize {
+            digits.iter().rev().enumerate().map(|(place, digit)| {
+                self.get_num_for_digit(digit) * 10usize.pow(place as u32)
+            }).sum()
+        }
     }
 
 
@@ -64,8 +140,8 @@ pub mod solutions {
         let mut sum: usize = 0;
         for line in aoc_reader {
             let input_output: Vec<&str> = line.split("|").collect();
-            let inputs: Vec<&str> = input_output[0].split(" ").collect();
-            let digits: Vec<&str> = input_output[1].split(" ").collect();
+            let inputs: Vec<String> = input_output[0].split_whitespace().map(|s| s.to_string()).collect();
+            let digits: Vec<String> = input_output[1].split_whitespace().map(|s| s.to_string()).collect();
 
             let mut wire_map = WireMapping::new();
             wire_map.build(inputs);
