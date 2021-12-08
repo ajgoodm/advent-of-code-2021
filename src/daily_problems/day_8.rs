@@ -23,7 +23,7 @@ pub mod solutions {
 
     struct WireMapping {
         str_to_val: HashMap<String, usize>,
-        val_to_str: HashMap<usize, String>
+        val_to_chars: HashMap<usize, HashSet<char>>
     }
 
 
@@ -31,7 +31,7 @@ pub mod solutions {
         fn new() -> WireMapping {
             WireMapping {
                 str_to_val: HashMap::new(),
-                val_to_str: HashMap::new()
+                val_to_chars: HashMap::new()
             }
         }
 
@@ -50,16 +50,7 @@ pub mod solutions {
 
         fn add_entry(&mut self, str: &String, val: usize) {
             self.str_to_val.insert(str.to_owned(), val);
-            self.val_to_str.insert(val, str.to_owned());
-        }
-
-
-        fn get_chars_for_num(&self, n: usize) -> Option<HashSet<char>> {
-            match self.val_to_str.get(&n) {
-                Some(str) => Some(str.chars().collect::<HashSet<char>>()),
-                None => None
-            }
-
+            self.val_to_chars.insert(val, str.chars().collect::<HashSet<char>>());
         }
 
 
@@ -80,23 +71,23 @@ pub mod solutions {
             let strs_of_len_6: Vec<&String> = WireMapping::get_patterns_of_len(&patterns, 6);
             for str in strs_of_len_5.iter() {
                 let str_chars: HashSet<char> = str.chars().collect();
-                if self.get_chars_for_num(1usize).unwrap().is_subset(&str_chars) {
+                if self.val_to_chars.get(&1).unwrap().is_subset(&str_chars) {
                     self.add_entry(str, 3usize);
                 }
             }
 
             for str in strs_of_len_6.iter() {
                 let str_chars: HashSet<char> = str.chars().collect();
-                if !self.get_chars_for_num(1usize).unwrap().is_subset(&str_chars) {
+                if !self.val_to_chars.get(&1).unwrap().is_subset(&str_chars) {
                     self.add_entry(str, 6usize);
                 }
             }
 
             for str in strs_of_len_5.iter() {
                 let str_chars: HashSet<char> = str.chars().collect();
-                if str_chars == self.get_chars_for_num(3).unwrap() {
+                if str_chars == *self.val_to_chars.get(&3).unwrap() {
                     continue
-                } else if str_chars.is_subset(&self.get_chars_for_num(6usize).unwrap()) {
+                } else if str_chars.is_subset(self.val_to_chars.get(&6).unwrap()) {
                     self.add_entry(str, 5usize);
                 } else {
                     self.add_entry(str, 2usize);
@@ -105,9 +96,9 @@ pub mod solutions {
 
             for str in strs_of_len_6.iter() {
                 let str_chars: HashSet<char> = str.chars().collect();
-                if str_chars == self.get_chars_for_num(6).unwrap() {
+                if str_chars == *self.val_to_chars.get(&6).unwrap() {
                     continue
-                } else if self.get_chars_for_num(5).unwrap().is_subset(&str_chars) {
+                } else if self.val_to_chars.get(&5).unwrap().is_subset(&str_chars) {
                     self.add_entry(str, 9usize);
                 } else {
                     self.add_entry(str, 0usize);
@@ -119,7 +110,7 @@ pub mod solutions {
             let digit_chars: HashSet<char> = digit.chars().collect();
 
             for val in 0..10 {
-                if self.get_chars_for_num(val).unwrap() == digit_chars {
+                if *self.val_to_chars.get(&val).unwrap() == digit_chars {
                     return val
                 }
             }
