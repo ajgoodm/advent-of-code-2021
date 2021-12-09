@@ -13,7 +13,7 @@ pub mod solutions {
 
     impl SeaFloorMap {
         fn from_aoc_reader(aoc_reader: AocBufReader) -> SeaFloorMap {
-            let mut depths: Vec<Vec<usize>> = aoc_reader.map(|row| {
+            let depths: Vec<Vec<usize>> = aoc_reader.map(|row| {
                 row.chars().map(|c| c.to_digit(10u32).unwrap() as usize).collect::<Vec<usize>>()
             }).collect();
 
@@ -82,7 +82,7 @@ pub mod solutions {
             minima
         }
 
-        fn basin_size(&self, mut row_idx: usize, mut col_idx: usize) -> usize {
+        fn basin_size(&self, row_idx: usize, col_idx: usize) -> usize {
             let mut locations_to_explore: Vec<(usize, usize)> = vec![(row_idx, col_idx)];
             let mut explored_locations: HashSet<(usize, usize)> = vec![(row_idx, col_idx)].into_iter().collect();
             let mut locations_in_basin: HashSet<(usize, usize)> = HashSet::new();
