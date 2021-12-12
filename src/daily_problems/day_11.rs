@@ -9,7 +9,8 @@ pub mod solutions {
     struct Octopi {
         grid: Vec<Vec<usize>>,
         n_flashes: usize,
-        nsync: bool
+        // Did all of the octopi flash this round?
+        nsync: bool // Bye, Bye, Bye; bonus for dereferencing this val *nsync
     }
 
 
@@ -48,7 +49,7 @@ pub mod solutions {
                     while octopi_to_step.len() > 0 {
                         let curr_coord = octopi_to_step.pop().unwrap();
                         if flashed.contains(&curr_coord) {continue}
-                        match curr_coord {
+                        match curr_coord {  // Rust doesn't support destructuring tuples...?
                             (cur_row, cur_col) => {
                                 val = self.grid[cur_row][cur_col];
                                 if val == 9 {
@@ -66,7 +67,7 @@ pub mod solutions {
                     }                
                 }
             }
-            if flashed.len() == 100 {self.nsync = true;}
+            if flashed.len() == 100 {self.nsync = true;}  // It's Gonna Be Me
         }
     }
 
