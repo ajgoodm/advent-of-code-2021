@@ -14,13 +14,14 @@ pub mod solutions {
 
     #[derive(Clone)]
     struct Path {
-        nodes: Vec<String>
+        nodes: Vec<String>,
+        has_revisited: bool
     }
 
 
     impl Path {
         fn new(node: &String) -> Path {
-            let mut path = Path { nodes: vec![] };
+            let mut path = Path { nodes: vec![], has_revisited: false };
             path.add_node(node);
             path            
         }
@@ -39,6 +40,10 @@ pub mod solutions {
             } else {
                 self.nodes.contains(node)
             }
+        }
+
+        fn print(&self) {
+            println!("{}", self.nodes.join(","));
         }
     }
 
@@ -67,7 +72,7 @@ pub mod solutions {
             } else {return vec![]}
         }
 
-        fn find_paths(&self) -> Vec<Path> {
+        fn find_paths_pt_1(&self) -> Vec<Path> {
             let mut living_paths: Vec<Path> = vec![Path::new(&START)];
             let mut complete_paths: Vec<Path> = vec![];
             while living_paths.len() > 0 {
@@ -85,7 +90,32 @@ pub mod solutions {
                         }
                     }
                 }
+            }
+            complete_paths
+        }
 
+        fn find_paths_pt_2(&self) -> Vec<Path> {
+            let mut living_paths: Vec<Path> = vec![Path::new(&START)];
+            let mut complete_paths: Vec<Path> = vec![];
+            while living_paths.len() > 0 {
+                let this_path = living_paths.pop().unwrap();
+                for next_node in self.get_adjacent_nodes(this_path.terminus()) {
+                    if &next_node[..] == &START[..] { continue }
+                    if !this_path.was_small_cave_visited(next_node) || !this_path.has_revisited {
+                        if &next_node[..] == &END[..] {
+                            let mut finished_path = this_path.clone();
+                            finished_path.add_node(&END);
+                            complete_paths.push(finished_path);
+                        } else {
+                            let mut living_path = this_path.clone();
+                            if this_path.was_small_cave_visited(next_node) {
+                                living_path.has_revisited = true;
+                            }
+                            living_path.add_node(next_node);
+                            living_paths.push(living_path);
+                        }
+                    }
+                }
             }
             complete_paths
         }
@@ -94,7 +124,12 @@ pub mod solutions {
 
     pub fn part_1(aoc_reader: AocBufReader) -> usize {
         let cave_map = CaveMap::from_reader(aoc_reader);
-        cave_map.find_paths().len()
+        cave_map.find_paths_pt_1().len()
+    }
+
+    pub fn part_2(aoc_reader: AocBufReader) -> usize {
+        let cave_map = CaveMap::from_reader(aoc_reader);
+        cave_map.find_paths_pt_2().len()
     }
 
 }
