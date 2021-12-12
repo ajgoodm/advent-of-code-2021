@@ -41,10 +41,6 @@ pub mod solutions {
                 self.nodes.contains(node)
             }
         }
-
-        fn print(&self) {
-            println!("{}", self.nodes.join(","));
-        }
     }
 
 
