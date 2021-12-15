@@ -73,6 +73,10 @@ pub mod solutions {
     }
 
 
+    // The strategy of modeling the polymer does scale well (exponentially with iteration)
+    // Similar to the last O(exp(n)) problem, we can model populations that evolve
+    // independently. In this problem, the populations are bicharacters, all substrings of
+    // the template of length 2.
     impl PolymerPt2 {
         fn run_insertions(&mut self) {
             let mut additions: HashMap<String, usize> = HashMap::new();
