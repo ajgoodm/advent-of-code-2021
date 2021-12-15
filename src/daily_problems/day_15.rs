@@ -124,6 +124,8 @@ pub mod solutions {
             self.risk_levels[location.row_idx][location.col_idx]
         }
 
+        /// Returns the next candidate unvisisted node with the lowest cost
+        /// and removes it from the queue.
         fn get_current_location_from_neighbors(&self, unvisited_nodes: &mut HashSet<CavernLocation>) -> CavernLocation {
             let mut next_location: Option<CavernLocation> = None;
             let mut lowest_cost: Option<usize> = None;
@@ -146,7 +148,7 @@ pub mod solutions {
 
         fn least_risky_path(mut self, start: CavernLocation, end: CavernLocation) -> usize {
             self.set_visited(&start);
-            self.set_cost(&start, 0); // we never ever the start
+            self.set_cost(&start, 0); // we never enter the start
 
             let mut current_location: CavernLocation;
             let mut unvisited_nodes: HashSet<CavernLocation> = vec![start].into_iter().collect();
