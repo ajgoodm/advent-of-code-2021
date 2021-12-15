@@ -1,9 +1,9 @@
 pub mod solutions {
-    use std::{collections::HashMap, hash::Hash};
+    use std::{collections::HashMap};
 
     use itertools::Itertools;
 
-    use crate::{AocBufReader, input::read_input};
+    use crate::{AocBufReader};
 
 
 
@@ -13,22 +13,22 @@ pub mod solutions {
     }
 
     pub struct Polymer {
-        pub template: String,
-        pub insertions: HashMap<String, char>
+        template: String,
+        insertions: HashMap<String, char>
     }
 
 
     impl Polymer {
-        pub fn len(&self) -> usize {
+        fn len(&self) -> usize {
             self.template.len()
         }
 
-        pub fn insert_char_at(&mut self, idx: usize, c: char) {
+        fn insert_char_at(&mut self, idx: usize, c: char) {
             if idx > self.len() { panic!("Cannot insert char there!") }
             self.template = vec![&self.template[..idx], &c.to_string(), &self.template[idx..]].iter().join("")
         }
 
-        pub fn run_insertions(&mut self) {
+        fn run_insertions(&mut self) {
             let mut insertion_queue: Vec<QueuedInsertion> = vec![];
             for idx in 0usize..self.template.len() - 1 {
                 match self.insertions.get(&self.template[idx..idx + 2]) {
@@ -48,7 +48,7 @@ pub mod solutions {
         }
 
 
-        pub fn score(&self) -> usize {
+        fn score(&self) -> usize {
             let mut occurence_count: HashMap<char, usize> = HashMap::new();
             for c in self.template.chars() {
                 *occurence_count.entry(c).or_insert(0) += 1
@@ -194,37 +194,34 @@ pub mod solutions {
         }
         polymer.score()
     }
-}
 
+    #[cfg(test)]
+    mod tests {
+        use super::*;
 
-#[cfg(test)]
-mod tests {
-    use std::collections::HashMap;
+        #[test]
+        fn test_insert_char_at() {
+            let mut test_seq: Polymer = Polymer {template: "ABC".to_string(), insertions: HashMap::new()};
+            test_seq.insert_char_at(0, 'D');
+            assert_eq!(test_seq.template, "DABC".to_string());
+            test_seq.insert_char_at(1, 'E');
+            assert_eq!(test_seq.template, "DEABC".to_string());
+            test_seq.insert_char_at(test_seq.len(), 'F');
+            assert_eq!(test_seq.template, "DEABCF".to_string());
+        }
 
-    use super::solutions::*;
-
-    #[test]
-    fn test_insert_char_at() {
-        let mut test_seq: Polymer = Polymer {template: "ABC".to_string(), insertions: HashMap::new()};
-        test_seq.insert_char_at(0, 'D');
-        assert_eq!(test_seq.template, "DABC".to_string());
-        test_seq.insert_char_at(1, 'E');
-        assert_eq!(test_seq.template, "DEABC".to_string());
-        test_seq.insert_char_at(test_seq.len(), 'F');
-        assert_eq!(test_seq.template, "DEABCF".to_string());
-    }
-
-    #[test]
-    fn test_run_insertions() {
-        let mut test_seq: Polymer = Polymer {
-            template: "NNCB".to_string(),
-            insertions: vec![
-                ("NN".to_string(), 'C'),
-                ("NC".to_string(), 'B'),
-                ("CB".to_string(), 'H')
-            ].into_iter().collect()
-        };
-        test_seq.run_insertions();
-        assert_eq!(test_seq.template, "NCNBCHB".to_string());
+        #[test]
+        fn test_run_insertions() {
+            let mut test_seq: Polymer = Polymer {
+                template: "NNCB".to_string(),
+                insertions: vec![
+                    ("NN".to_string(), 'C'),
+                    ("NC".to_string(), 'B'),
+                    ("CB".to_string(), 'H')
+                ].into_iter().collect()
+            };
+            test_seq.run_insertions();
+            assert_eq!(test_seq.template, "NCNBCHB".to_string());
+        }
     }
 }
