@@ -38,13 +38,51 @@ pub mod solutions {
             }
         }
 
-        fn from_reader(aoc_reader: AocBufReader) -> CavernMap {
+        fn from_reader_pt1(aoc_reader: AocBufReader) -> CavernMap {
             let mut risk_levels: Vec<Vec<usize>> = vec![];
             for line in aoc_reader {
                 risk_levels.push(
                     line.chars().map(|c| c.to_digit(10).unwrap() as usize).collect::<Vec<usize>>()
                 );
             }
+            CavernMap::new(risk_levels)
+        }
+
+        fn increase_risk_level(val: usize, increase: usize) -> usize {
+            let mut new_val = val + increase;
+            while new_val > 9 {
+                new_val = new_val - 9
+            }
+            new_val
+        }
+
+        fn from_reader_pt2(aoc_reader: AocBufReader) -> CavernMap {
+            let mut risk_levels: Vec<Vec<usize>> = vec![];
+            for line in aoc_reader {
+                let mut risk_level_line: Vec<usize> = vec![];
+                for repeat in 0..5 {
+                    risk_level_line.extend(
+                        line.chars().map(|c| {
+                            CavernMap::increase_risk_level(
+                                c.to_digit(10).unwrap() as usize,
+                                repeat
+                            )
+                        })
+                    )
+                }
+                risk_levels.push(risk_level_line);
+            }
+
+            let mut new_lines: Vec<Vec<usize>> = vec![];
+            for repeat in 1..5 {
+                for line in risk_levels.iter() {
+                    new_lines.push(
+                        line.iter().map(|x| CavernMap::increase_risk_level(*x, repeat)).collect()
+                    )
+                }
+            }
+            risk_levels.extend(new_lines);
+
             CavernMap::new(risk_levels)
         }
 
@@ -140,9 +178,30 @@ pub mod solutions {
 
 
     pub fn part_1(aoc_reader: AocBufReader) -> usize {
-        let cavern_map = CavernMap::from_reader(aoc_reader);
+        let cavern_map = CavernMap::from_reader_pt1(aoc_reader);
         let start = CavernLocation::new(0, 0);
         let end = cavern_map.south_east_location();
         cavern_map.least_risky_path(start, end)
     }
+
+
+    pub fn part_2(aoc_reader: AocBufReader) -> usize {
+        let cavern_map = CavernMap::from_reader_pt2(aoc_reader);
+        let start = CavernLocation::new(0, 0);
+        let end = cavern_map.south_east_location();
+        cavern_map.least_risky_path(start, end)
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn test_increase_risk_level() {
+            assert_eq!(CavernMap::increase_risk_level(1, 0), 1);
+            assert_eq!(CavernMap::increase_risk_level(9, 0), 9);
+            assert_eq!(CavernMap::increase_risk_level(9, 1), 1);
+        }
+    }
+
 }
