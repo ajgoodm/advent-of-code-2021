@@ -48,6 +48,8 @@ pub mod solutions {
             CavernMap::new(risk_levels)
         }
 
+        /// Takes the sum and rolls it over if it is more than 9.
+        /// This is very close to (but subtly different than) the modulo operator.
         fn increase_risk_level(val: usize, increase: usize) -> usize {
             let mut new_val = val + increase;
             while new_val > 9 {
@@ -86,6 +88,8 @@ pub mod solutions {
             CavernMap::new(risk_levels)
         }
 
+        /// Returns the maximum row_idx, col_idx pair as a CavernLocation
+        /// (the bounds of the map)
         fn south_east_location(&self) -> CavernLocation {
             CavernLocation::new(
                 self.risk_levels.len() - 1, self.risk_levels[0].len() - 1
