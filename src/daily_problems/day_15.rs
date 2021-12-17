@@ -49,7 +49,7 @@ pub mod solutions {
         }
 
         /// Takes the sum and rolls it over if it is more than 9.
-        /// This is very close to (but subtly different than) the modulo operator.
+        /// This is very close to (but subtly different than) the modulo operator.`
         fn increase_risk_level(val: usize, increase: usize) -> usize {
             let mut new_val = val + increase;
             while new_val > 9 {

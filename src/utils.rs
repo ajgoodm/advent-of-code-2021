@@ -17,6 +17,17 @@ pub mod conversion {
             }
         ).sum::<usize>()
     }
+
+    pub fn binary_string_slice_to_usize(binary: &str) -> usize {
+        binary.chars().rev().enumerate().map(|(idx, c)| {
+                match c {
+                    '0' => 0,
+                    '1' => 2usize.pow(idx as u32),
+                    _ => panic!("unexpected char parsing binary")
+                }
+            }
+        ).sum::<usize>()
+    }
 }
 
 
