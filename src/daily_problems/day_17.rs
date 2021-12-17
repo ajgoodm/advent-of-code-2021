@@ -23,9 +23,13 @@ pub mod solutions {
         fn new(min_x: isize, min_y: isize, max_x: isize, max_y: isize) -> Target {
             Target { min_x, min_y, max_x, max_y }
         }
+
+        fn contains_probe(&self, probe: &Probe) -> bool {
+            self.min_x <= probe.sx && probe.sx <= self.max_x && self.min_y <= probe.sy && probe.sy <= self.max_y
+        }
     }
 
-    struct Cannon {
+    struct Probe {
         t: usize,
 
         sx: isize,
@@ -35,11 +39,29 @@ pub mod solutions {
         vy: isize,
     }
 
-    impl Cannon {
-        fn new(vx: isize, vy: isize) -> Cannon {
-            Cannon {
+    impl Probe {
+        fn new(vx: isize, vy: isize) -> Probe {
+            Probe {
                 t: 0, sx: 0, sy: 0, vx, vy
             }
+        }
+
+        fn step(&mut self) {
+            self.t += 1;
+            self.sx += self.vx;
+            self.sy += self.vy;
+
+            if self.vx > 0 {
+                self.vx -= 1;
+            } else if self.vx < 0 {
+                self.vx += 1;
+            }
+
+            self.vy -= 1;
+        }
+
+        fn print(&self) {
+            println!("({}, {})", self.sx, self.sy);
         }
     }
 
@@ -81,6 +103,12 @@ pub mod solutions {
                 read_input("target area: x=155..182, y=-117..-67".to_string()),
                 Target::new(155, -117, 182, -67)
             );
+        }
+
+
+        #[test]
+        fn test_pt_1() {
+            _part_1("target area: x=20..30, y=-10..-5".to_string());
         }
     }
 }
