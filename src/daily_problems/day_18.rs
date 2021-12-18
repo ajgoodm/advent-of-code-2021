@@ -5,6 +5,10 @@ pub mod solutions {
     use crate::AocBufReader;
 
     lazy_static! {
+        static ref INTERNAL_PAIR: Regex = Regex::new(
+            r"^\[([0-9]*),([0-9]*)\](.*)$"
+        ).unwrap();
+
         static ref RIGHT_MOST_NUM: Regex = Regex::new(
             r"^(.*[^0-9])([0-9]+)([^0-9]*)$"
         ).unwrap();
@@ -30,15 +34,23 @@ pub mod solutions {
             SnailFishNumber { s }
         }
 
-        fn _get_deep_comma_idx(s: &str) -> Option<usize> {
+        fn _get_deep_pair(s: &str) -> Option<Vec<String>> {
             let mut depth: usize = 0;
-            for (idx, c) in s.chars() {
-                if c == '[' {
-                    depth += 1;
-                } else if c == ']' {
-                    depth -= 1;
-                } else 
+            for (idx, c) in s.chars().enumerate() {
+                if depth >= 4 {
+                    if let Some(capture) = INTERNAL_PAIR.captures(&s[idx..]) {
+                        return Some(vec![
+                            s[..idx].to_string(),
+                            capture.get(1).unwrap().as_str().to_string(),
+                            capture.get(2).unwrap().as_str().to_string(),
+                            capture.get(3).unwrap().as_str().to_string()
+                        ])
+                    }
+                }
+                if c == '[' { depth += 1; }
+                if c == ']' { depth -= 1; }
             }
+            return None
         }
 
         fn _maybe_add_at_right(s: &str, addendum: usize) -> String {
@@ -62,16 +74,14 @@ pub mod solutions {
         }
 
         fn explode_deeper_than_4(&mut self) {
-            if let Some(comma_idx) = _get_comma_idx(&self.s) {
-                let left_sub_str = capture.get(1).unwrap().as_str();
-                let deep_left: usize = capture.get(2).unwrap().as_str().parse::<usize>().unwrap();
-                let deep_right: usize = capture.get(3).unwrap().as_str().parse::<usize>().unwrap();
-                let right_sub_str = capture.get(4).unwrap().as_str();
+            if let Some(str_vec) = SnailFishNumber::_get_deep_pair(&self.s) {
+                let deep_left = str_vec[1].parse::<usize>().unwrap();
+                let deep_right = str_vec[2].parse::<usize>().unwrap();
 
                 self.s = vec![
-                    SnailFishNumber::_maybe_add_left(left_sub_str, deep_left),
+                    SnailFishNumber::_maybe_add_left(&str_vec[0], deep_left),
                     "0".to_string(),
-                    SnailFishNumber::_maybe_add_at_right(right_sub_str, deep_right)
+                    SnailFishNumber::_maybe_add_at_right(&str_vec[3], deep_right)
                 ].into_iter().collect::<String>();
             }
         }
@@ -95,10 +105,9 @@ pub mod solutions {
 
         fn reduce(&mut self) {
             loop {
-                println!("\n\n***{}", self.s);
-                if let Some(capture) = DEEP_PAIR_RE.captures(&self.s) {
+                if let Some(_) = SnailFishNumber::_get_deep_pair(&self.s) {
                     self.explode_deeper_than_4();
-                } else if let Some(capture) = VAL_GREATER_THAN_TEN.captures(&self.s) {
+                } else if let Some(_) = VAL_GREATER_THAN_TEN.captures(&self.s) {
                     self.split_greater_than_9();
                 } else {
                     break
