@@ -20,6 +20,10 @@ pub mod solutions {
         static ref VAL_GREATER_THAN_TEN:Regex = Regex::new(
             r"^(.*[^0-9])([0-9]+[0-9]+)([^0-9].*)$"
         ).unwrap();
+
+        static ref LEFT_MOST_GREATER_THAN_TEN :Regex = Regex::new(
+            r"^([0-9]+[0-9]+)([,\]].*)$"
+        ).unwrap();
     }
 
 
@@ -87,10 +91,18 @@ pub mod solutions {
         }
 
         fn split_greater_than_9(&mut self) {
-            let capture = VAL_GREATER_THAN_TEN.captures(&self.s).unwrap();
-            let left_sub_str = capture.get(1).unwrap().as_str();
-            let val = capture.get(2).unwrap().as_str().parse::<usize>().unwrap();
-            let right_sub_str = capture.get(3).unwrap().as_str();
+            let mut left_sub_str: &str = "";
+            let mut val: usize = 0;
+            let mut right_sub_str: &str = "";
+
+            for (idx, c) in self.s.chars().enumerate() {
+                if let Some(capture) = LEFT_MOST_GREATER_THAN_TEN.captures(&self.s[idx..]) {
+                    left_sub_str = &self.s[..idx];
+                    val = capture.get(1).unwrap().as_str().parse::<usize>().unwrap();
+                    right_sub_str = capture.get(2).unwrap().as_str();
+                    break
+                }
+            }
 
             self.s = vec![
                 left_sub_str.to_string(),
@@ -114,8 +126,32 @@ pub mod solutions {
                 }
             }
         }
+
+        fn add(&mut self, other: SnailFishNumber) {
+            let new_str = vec![
+                "[".to_string(),
+                self.s.clone(),
+                ",".to_string(),
+                other.s,
+                "]".to_string()
+            ].into_iter().collect::<String>();
+
+            self.s = new_str;
+            self.reduce()
+        }
     }
 
+
+    pub fn part_1(mut aoc_reader: AocBufReader) -> usize {
+       let mut sum = SnailFishNumber::new(aoc_reader.next().unwrap());
+       while let Some(line) = aoc_reader.next() {
+           sum.add(SnailFishNumber::new(line));
+       }
+
+
+        println!("{}", sum.s);
+        1
+    }
 
 
 
