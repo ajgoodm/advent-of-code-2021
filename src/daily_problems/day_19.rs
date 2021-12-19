@@ -1,4 +1,5 @@
 pub mod solutions {
+    use std::collections::HashSet;
     use std::iter::Scan;
 
     use lazy_static::lazy_static;
@@ -25,12 +26,19 @@ pub mod solutions {
         fn new(x: isize, y: isize, z: isize) -> Point {
             Point { x, y, z }
         }
+
+        fn manhattan_distance(&self, other: &Point) -> usize {
+            (self.x - other.x).abs() as usize
+            + (self.y - other.y).abs() as usize
+            + (self.z - other.z).abs() as usize
+        }
     }
 
 
     struct Scanner {
         id: usize,
         probes: Vec<Point>,
+        interparticle_distances: HashSet<usize>
     }
 
 
@@ -49,9 +57,21 @@ pub mod solutions {
                     probes.push(Point::new(vals[0], vals[0], vals[0]));
                 }
 
-                Some(Scanner { id: scanner_id, probes: probes })
+                let mut scanner = Scanner { id: scanner_id, probes: probes, interparticle_distances: HashSet::new() };
+                scanner.calculate_interparticle_distances();
+                Some(scanner)
             } else {
                 None
+            }
+        }
+
+        fn calculate_interparticle_distances(&mut self) {
+            for first_probe_idx in 0..self.probes.len() {
+                for second_probe_idx in (first_probe_idx + 1)..self.probes.len() {
+                    self.interparticle_distances.insert(
+                        self.probes[first_probe_idx].manhattan_distance(&self.probes[second_probe_idx])
+                    );
+                }
             }
         }
     }
