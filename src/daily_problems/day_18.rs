@@ -5,7 +5,11 @@ pub mod solutions {
     use crate::AocBufReader;
 
     lazy_static! {
-        static ref INTERNAL_PAIR: Regex = Regex::new(
+        static ref ANY_INTERNAL_PAIR: Regex = Regex::new(
+            r"^(.*)\[([0-9]*),([0-9]*)\](.*)$"
+        ).unwrap();
+
+        static ref LEFT_MOST_INTERNAL_PAIR: Regex = Regex::new(
             r"^\[([0-9]*),([0-9]*)\](.*)$"
         ).unwrap();
 
@@ -42,7 +46,7 @@ pub mod solutions {
             let mut depth: usize = 0;
             for (idx, c) in s.chars().enumerate() {
                 if depth >= 4 {
-                    if let Some(capture) = INTERNAL_PAIR.captures(&s[idx..]) {
+                    if let Some(capture) = LEFT_MOST_INTERNAL_PAIR.captures(&s[idx..]) {
                         return Some(vec![
                             s[..idx].to_string(),
                             capture.get(1).unwrap().as_str().to_string(),
@@ -139,6 +143,23 @@ pub mod solutions {
             self.s = new_str;
             self.reduce()
         }
+
+        fn magnitude(&self) -> usize {
+            let mut result: String = self.s.clone();
+            while let Some(capture) = ANY_INTERNAL_PAIR.captures(&result) {
+                let left_sub_str = capture.get(1).unwrap().as_str();
+                let left_val = capture.get(2).unwrap().as_str().parse::<usize>().unwrap();
+                let right_val = capture.get(3).unwrap().as_str().parse::<usize>().unwrap();
+                let right_sub_str = capture.get(4).unwrap().as_str();
+                result = vec![
+                    left_sub_str.to_string(),
+                    (3 * left_val + 2 * right_val).to_string(),
+                    right_sub_str.to_string()
+                ].into_iter().collect()
+
+            }
+            result.parse::<usize>().unwrap()
+        }
     }
 
 
@@ -148,9 +169,7 @@ pub mod solutions {
            sum.add(SnailFishNumber::new(line));
        }
 
-
-        println!("{}", sum.s);
-        1
+        sum.magnitude()
     }
 
 
@@ -178,6 +197,12 @@ pub mod solutions {
             let mut s = SnailFishNumber::new("[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]".to_string());
             s.reduce();
             assert_eq!(s.s, "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]".to_string())
+        }
+
+        #[test]
+        fn test_magnitude() {
+            let s = SnailFishNumber::new("[[1,2],[[3,4],5]]".to_string());
+            assert_eq!(s.magnitude(), 143);
         }
     }
 }

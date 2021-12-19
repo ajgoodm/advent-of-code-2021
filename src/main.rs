@@ -7,7 +7,7 @@ pub use daily_problems::day_18::solutions::{part_1};
 
 
 fn main() {
-    let aoc_reader = AocBufReader::from_str("src/data/day_18_pt_1_test.txt");
+    let aoc_reader = AocBufReader::from_str("src/data/day_18_pt_1.txt");
     let result: usize = part_1(aoc_reader);
     println!("{}", result);
 }
