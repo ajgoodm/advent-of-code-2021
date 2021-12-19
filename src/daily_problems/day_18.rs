@@ -1,4 +1,5 @@
 pub mod solutions {
+    use itertools::Itertools;
     use lazy_static::lazy_static;
     use regex::Regex;
 
@@ -31,7 +32,7 @@ pub mod solutions {
     }
 
 
-    #[derive(PartialEq, Eq, Debug)]
+    #[derive(PartialEq, Eq, Debug, Clone)]
     struct SnailFishNumber {
         s: String
     }
@@ -172,6 +173,27 @@ pub mod solutions {
         sum.magnitude()
     }
 
+
+    pub fn part_2(aoc_reader: AocBufReader) -> usize {
+        let snail_fish_numbers: Vec<SnailFishNumber> = aoc_reader.map(|line| SnailFishNumber::new(line)).collect();
+
+        let mut max_sum: usize = usize::MIN;
+        for (idx_1, idx_2) in (0..snail_fish_numbers.len()).cartesian_product(0..snail_fish_numbers.len()) {
+            if idx_1 == idx_2 { continue }
+
+
+            let mut x: SnailFishNumber = snail_fish_numbers[idx_1].clone();
+            let y: SnailFishNumber = snail_fish_numbers[idx_2].clone();
+
+            x.add(y);
+            let magnitude = x.magnitude();
+            if magnitude > max_sum {
+                max_sum = magnitude;
+            }
+        }
+
+        max_sum
+    }
 
 
     #[cfg(test)]
