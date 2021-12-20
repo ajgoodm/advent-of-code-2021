@@ -28,6 +28,16 @@ pub mod conversion {
             }
         ).sum::<usize>()
     }
+
+    pub fn binary_bool_vec_to_usize(binary: Vec<bool>) -> usize {
+        binary.iter().rev().enumerate().map(|(idx, c)| {
+                match c {
+                    false => 0,
+                    true => 2usize.pow(idx as u32),
+                }
+            }
+        ).sum::<usize>()
+    }
 }
 
 
