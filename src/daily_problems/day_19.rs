@@ -39,6 +39,7 @@ pub mod solutions {
             + (self.z - other.z).abs() as usize
         }
 
+        /// Returns the vector that when added to self produces other
         fn displacement(&self, other: &Point) -> Point {
             Point::new(other.x - self.x, other.y - self.y, other.z - self.z)
         }
@@ -135,6 +136,17 @@ pub mod solutions {
             }
         }
 
+        /// Considers all possible orientations of other and sees if other
+        /// co-registers 12 probes with self. If it does, returns all of
+        /// others' probe locations in the coordinate system of self.
+        /// Upon co-registering 12 probes, updates scanner_locations
+        /// to include the newly-discovered location of other.
+        ///
+        /// # Arguments
+        ///
+        /// * `other` - A reference to a scanner that may or may not coregister 12 probes with self
+        /// * `scanner_locations` - Mutable reference to a list of scanner locations.
+        ///                         Adds the location of other it it's found.
         fn matches_other(&self, other: &Scanner, mut scanner_locations: &mut Vec<Point>) -> Option<Vec<Point>> {
             for rotation in Point::relative_orientations() {
                 let reoriented_points: Vec<Point> = other.probes.iter().map(|p| {
@@ -168,9 +180,7 @@ pub mod solutions {
     }
 
 
-    pub fn part_1(aoc_reader: AocBufReader) -> usize {
-        let scanners: Vec<Scanner> = read_input(aoc_reader);
-        let mut scanner_locations: Vec<Point> = vec![Point::new(0, 0, 0)];
+    fn _orient_scanners(scanners: Vec<Scanner>, mut scanner_locations: &mut Vec<Point>) -> Scanner {
         let mut oriented_scanner_net: Scanner = Scanner {
             id: 0,
             probes: scanners[0].probes.iter().map(|p| *p).collect()
@@ -188,6 +198,13 @@ pub mod solutions {
                 }
             }
         }
+        oriented_scanner_net
+    }
+
+    pub fn part_1(aoc_reader: AocBufReader) -> usize {
+        let scanners: Vec<Scanner> = read_input(aoc_reader);
+        let mut scanner_locations: Vec<Point> = vec![Point::new(0, 0, 0)];
+        let oriented_scanner_net = _orient_scanners(scanners, &mut scanner_locations);
 
         oriented_scanner_net.probes.len()
     }
@@ -195,23 +212,7 @@ pub mod solutions {
     pub fn part_2(aoc_reader: AocBufReader) -> usize {
         let scanners: Vec<Scanner> = read_input(aoc_reader);
         let mut scanner_locations: Vec<Point> = vec![Point::new(0, 0, 0)];
-        let mut oriented_scanner_net: Scanner = Scanner {
-            id: 0,
-            probes: scanners[0].probes.iter().map(|p| *p).collect()
-        };
-        let mut oriented_scanners: HashSet<usize> = vec![scanners[0].id].into_iter().collect();
-
-        while oriented_scanners.len() < scanners.len() {
-            for scanner in scanners.iter() {
-                if oriented_scanners.contains(&scanner.id) {
-                    continue
-                }
-                if let Some(pts) = &oriented_scanner_net.matches_other(scanner, &mut  scanner_locations) {
-                    oriented_scanner_net.probes.extend(pts);
-                    oriented_scanners.insert(scanner.id);
-                }
-            }
-        }
+        let oriented_scanner_net = _orient_scanners(scanners, &mut scanner_locations);
 
         let mut max_dist: usize = usize::MIN;
         for point_1 in scanner_locations.iter() {
