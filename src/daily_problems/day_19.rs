@@ -135,7 +135,7 @@ pub mod solutions {
             }
         }
 
-        fn matches_other(&self, other: &Scanner) -> Option<Vec<Point>> {
+        fn matches_other(&self, other: &Scanner, mut scanner_locations: &mut Vec<Point>) -> Option<Vec<Point>> {
             for rotation in Point::relative_orientations() {
                 let reoriented_points: Vec<Point> = other.probes.iter().map(|p| {
                     Point::apply_rotation(p, &rotation)
@@ -146,6 +146,7 @@ pub mod solutions {
                         let displacement: Point = reoriented_point.displacement(&point);
                         *displacements.entry(displacement).or_insert(0) += 1;
                         if *displacements.get(&displacement).unwrap() >= 12 {
+                            scanner_locations.push(displacement);
                             return Some(
                                 reoriented_points.into_iter().map(|p| p.add(&displacement)).collect()
                             )
@@ -169,6 +170,7 @@ pub mod solutions {
 
     pub fn part_1(aoc_reader: AocBufReader) -> usize {
         let scanners: Vec<Scanner> = read_input(aoc_reader);
+        let mut scanner_locations: Vec<Point> = vec![Point::new(0, 0, 0)];
         let mut oriented_scanner_net: Scanner = Scanner {
             id: 0,
             probes: scanners[0].probes.iter().map(|p| *p).collect()
@@ -180,7 +182,7 @@ pub mod solutions {
                 if oriented_scanners.contains(&scanner.id) {
                     continue
                 }
-                if let Some(pts) = &oriented_scanner_net.matches_other(scanner) {
+                if let Some(pts) = &oriented_scanner_net.matches_other(scanner, &mut  scanner_locations) {
                     oriented_scanner_net.probes.extend(pts);
                     oriented_scanners.insert(scanner.id);
                 }
@@ -192,6 +194,7 @@ pub mod solutions {
 
     pub fn part_2(aoc_reader: AocBufReader) -> usize {
         let scanners: Vec<Scanner> = read_input(aoc_reader);
+        let mut scanner_locations: Vec<Point> = vec![Point::new(0, 0, 0)];
         let mut oriented_scanner_net: Scanner = Scanner {
             id: 0,
             probes: scanners[0].probes.iter().map(|p| *p).collect()
@@ -203,7 +206,7 @@ pub mod solutions {
                 if oriented_scanners.contains(&scanner.id) {
                     continue
                 }
-                if let Some(pts) = &oriented_scanner_net.matches_other(scanner) {
+                if let Some(pts) = &oriented_scanner_net.matches_other(scanner, &mut  scanner_locations) {
                     oriented_scanner_net.probes.extend(pts);
                     oriented_scanners.insert(scanner.id);
                 }
@@ -211,8 +214,8 @@ pub mod solutions {
         }
 
         let mut max_dist: usize = usize::MIN;
-        for point_1 in oriented_scanner_net.probes.iter() {
-            for point_2 in oriented_scanner_net.probes.iter() {
+        for point_1 in scanner_locations.iter() {
+            for point_2 in scanner_locations.iter() {
                 let d = point_1.manhattan_distance(point_2);
                 if d > max_dist {
                     max_dist = d
