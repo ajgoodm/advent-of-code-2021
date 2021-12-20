@@ -8,21 +8,6 @@ pub mod solutions {
     use crate::utils::conversion::binary_bool_vec_to_usize;
 
 
-    struct ImageBounds {
-        min_row: isize,
-        min_col: isize,
-        max_row: isize,
-        max_col: isize
-    }
-
-
-    impl ImageBounds {
-        fn new(min_row: isize, min_col: isize, max_row: isize, max_col: isize)  -> ImageBounds {
-            ImageBounds { min_row, min_col, max_row, max_col }
-        }
-    }
-
-
     #[derive(Debug, PartialEq, Eq, Hash)]
     struct Point {
         row: isize,
