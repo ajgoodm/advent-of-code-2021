@@ -1,4 +1,6 @@
 pub mod solutions {
+    use std::cmp::{max, min};
+
     use lazy_static::lazy_static;
     use regex::Regex;
 
@@ -6,46 +8,48 @@ pub mod solutions {
 
     lazy_static! {
         static ref INPUT_RE: Regex = Regex::new(
-            r"^([fon]*) x=([0-9]*)\.\.([0-9]*),y=([0-9]*)\.\.([0-9]*),z=([0-9]*)\.\.([0-9]*)"
+            r"^([fon]*) x=(-?[0-9]*)\.\.(-?[0-9]*),y=(-?[0-9]*)\.\.(-?[0-9]*),z=(-?[0-9]*)\.\.(-?[0-9]*)"
         ).unwrap();
     }
 
 
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     struct InclusiveRange {
-        min: usize,
-        max: usize,
+        min: isize,
+        max: isize,
     }
 
 
     impl InclusiveRange {
-        fn new(min: usize, max: usize) -> InclusiveRange {
+        fn new(min: isize, max: isize) -> InclusiveRange {
             InclusiveRange { min, max }
         }
     }
 
 
-    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    #[derive(Debug, PartialEq, Eq)]
     struct Cube {
         on: bool,
         x: InclusiveRange,
         y: InclusiveRange,
         z: InclusiveRange,
+        sub_cubes: Vec<Box<Cube>>,
     }
 
 
     impl Cube {
         fn new(
             on: bool,
-            min_x: usize, max_x: usize,
-            min_y: usize, max_y: usize,
-            min_z: usize, max_z: usize
+            min_x: isize, max_x: isize,
+            min_y: isize, max_y: isize,
+            min_z: isize, max_z: isize
         ) -> Cube {
             Cube {
                 on: on,
                 x: InclusiveRange::new(min_x, max_x),
                 y: InclusiveRange::new(min_y, max_y),
-                z: InclusiveRange::new(min_z, max_z)
+                z: InclusiveRange::new(min_z, max_z),
+                sub_cubes: vec![]
             }
         }
 
@@ -61,13 +65,30 @@ pub mod solutions {
 
             Cube::new(
                 cube_is_on,
-                capture.get(2).unwrap().as_str().parse::<usize>().unwrap(),
-                capture.get(3).unwrap().as_str().parse::<usize>().unwrap(),
-                capture.get(4).unwrap().as_str().parse::<usize>().unwrap(),
-                capture.get(5).unwrap().as_str().parse::<usize>().unwrap(),
-                capture.get(6).unwrap().as_str().parse::<usize>().unwrap(),
-                capture.get(7).unwrap().as_str().parse::<usize>().unwrap(),
+                capture.get(2).unwrap().as_str().parse::<isize>().unwrap(),
+                capture.get(3).unwrap().as_str().parse::<isize>().unwrap(),
+                capture.get(4).unwrap().as_str().parse::<isize>().unwrap(),
+                capture.get(5).unwrap().as_str().parse::<isize>().unwrap(),
+                capture.get(6).unwrap().as_str().parse::<isize>().unwrap(),
+                capture.get(7).unwrap().as_str().parse::<isize>().unwrap(),
             )
+        }
+
+        fn intersection(&self, other: &Cube, on: bool) -> Option<Cube> {
+            if other.x.min >= self.x.max || other.y.min >= self.y.max || other.z.min >= self.z.max ||
+               other.x.max <= self.x.min || other.y.max <= self.y.min || other.z.max <= self.z.min {
+                None
+            } else {
+                Some(Cube::new(
+                    on,
+                    max(self.x.min, other.x.min),
+                    min(self.x.max, other.x.max),
+                    max(self.y.min, other.y.min),
+                    min(self.y.max, other.y.max),
+                    max(self.z.min, other.z.min),
+                    min(self.z.max, other.z.max),
+                ))
+            }
         }
     }
 
@@ -91,12 +112,33 @@ pub mod solutions {
         #[test]
         fn test_from_string() {
             assert_eq!(
-                Cube::from_string("on x=10..12,y=10..12,z=10..12".to_string()),
-                Cube::new(true, 10, 12, 10, 12, 10, 12)
+                Cube::from_string("on x=-10..12,y=10..12,z=10..12".to_string()),
+                Cube::new(true, -10, 12, 10, 12, 10, 12)
             );
             assert_eq!(
                 Cube::from_string("off x=1..22,y=3..4,z=5..6".to_string()),
                 Cube::new(false, 1, 22, 3, 4, 5, 6)
+            );
+        }
+
+
+        #[test]
+        fn test_intersection() {
+            assert_eq!(
+                Cube::from_string("on x=0..1,y=0..1,z=0..1".to_string()).intersection(
+                &Cube::from_string("on x=1..2,y=1..2,z=1..2".to_string()), true), None
+            );
+
+            assert_eq!(
+                Cube::from_string("on x=0..2,y=0..1,z=0..1".to_string()).intersection(
+                &Cube::from_string("on x=1..3,y=0..1,z=0..1".to_string()), true), Some(
+                Cube::from_string("on x=1..2,y=0..1,z=0..1".to_string()))
+            );
+
+            assert_eq!(
+                Cube::from_string("on x=0..2,y=0..1,z=0..1".to_string()).intersection(
+                &Cube::from_string("on x=1..3,y=0..1,z=0..1".to_string()), false), Some(
+                Cube::from_string("off x=1..2,y=0..1,z=0..1".to_string()))
             );
         }
     }
