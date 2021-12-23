@@ -74,12 +74,21 @@ pub mod solutions {
             )
         }
 
+        fn is_disjoint(&self, other: &Cube) -> bool {
+            other.x.min >= self.x.max || other.y.min >= self.y.max || other.z.min >= self.z.max ||
+            other.x.max <= self.x.min || other.y.max <= self.y.min || other.z.max <= self.z.min
+        }
+
+        fn is_contained_by(&self, other: &Cube) -> bool {
+            other.x.min <= self.x.min && other.y.min <= self.y.min && other.z.min <= self.z.min &&
+            other.x.max >= self.x.max && other.y.max >= self.y.max && other.z.max >= self.z.max
+        }
+
         fn intersection(&self, other: &Cube, on: bool) -> Option<Cube> {
-            if other.x.min >= self.x.max || other.y.min >= self.y.max || other.z.min >= self.z.max ||
-               other.x.max <= self.x.min || other.y.max <= self.y.min || other.z.max <= self.z.min {
+            if self.is_disjoint(other) {
                 None
             } else {
-                Some(Cube::new(
+                let mut cube = Cube::new(
                     on,
                     max(self.x.min, other.x.min),
                     min(self.x.max, other.x.max),
@@ -87,16 +96,45 @@ pub mod solutions {
                     min(self.y.max, other.y.max),
                     max(self.z.min, other.z.min),
                     min(self.z.max, other.z.max),
-                ))
+                );
+                let sub_cubes: Vec<Box<Cube>> = self.sub_cubes.iter()
+                    .map(|s| s.intersection(other, on))
+                    .filter(|s| *s != None)
+                    .map(|s| Box::new(s.unwrap()))
+                    .collect();
+                cube.sub_cubes = sub_cubes;
+                Some(cube)
             }
         }
 
-        fn difference(&mut self, other: &Cube) {
-            ()
+        fn difference(&self, other: &Cube) -> Option<Cube> {
+            if self.is_contained_by(other) {
+                None
+            } else {
+                let mut cube = Cube {
+                    sub_cubes: vec![],
+                    ..*self
+                };
+                let sub_cubes: Vec<Box<Cube>> = self.sub_cubes.iter()
+                    .map(|s| s.difference(other))
+                    .filter(|s| *s != None)
+                    .map(|s| Box::new(s.unwrap()))
+                    .collect();
+                if let Some(intersection) = cube.intersection(other, false) {
+                    cube.sub_cubes.push(Box::new(intersection));
+                }
+                cube.sub_cubes = sub_cubes;
+                Some(cube)
+            }
         }
 
         fn merge_cubes(mut self, merged_cubes: &mut Vec<Box<Cube>>) {
-            ()
+            // TODO
+            for cube in merged_cubes {
+                if let Some(intersection) = self.intersection(cube, self.on) {
+                    cube.sub_cubes.push(Box::new(intersection));
+                }
+            }
         }
 
         fn boundary_volume(&self) -> isize {
