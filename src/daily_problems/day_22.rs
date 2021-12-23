@@ -90,6 +90,26 @@ pub mod solutions {
                 ))
             }
         }
+
+        fn difference(&mut self, other: &Cube) {
+            ()
+        }
+
+        fn merge_cubes(mut self, merged_cubes: &mut Vec<Box<Cube>>) {
+            ()
+        }
+
+        fn boundary_volume(&self) -> isize {
+            (self.x.max - self.x.min + 1) * (self.y.max - self.y.min + 1) * (self.z.max - self.z.min + 1)
+        }
+
+        fn total_volume(&self) -> isize {
+            let sub_cube_volumes: isize = self.sub_cubes.iter().map(|cube| cube.total_volume()).sum();
+            match self.on {
+                true => self.boundary_volume() + sub_cube_volumes,
+                false => sub_cube_volumes - self.boundary_volume()
+            }
+        }
     }
 
 
@@ -98,9 +118,19 @@ pub mod solutions {
     }
 
 
+    fn merge_cubes(cubes: Vec<Cube>) -> Vec<Box<Cube>> {
+        let mut merged_cubes: Vec<Box<Cube>> = vec![];
+        for cube in cubes {
+            cube.merge_cubes(&mut merged_cubes);
+        }
+        merged_cubes
+    }
+
+
     pub fn part_1(aoc_reader: AocBufReader) -> usize {
         let cubes = read_input(aoc_reader);
-        1
+        let merged_cubes: Vec<Box<Cube>> = merge_cubes(cubes);
+        merged_cubes.into_iter().map(|cube| cube.total_volume() as usize).sum()
     }
 
 
@@ -140,6 +170,22 @@ pub mod solutions {
                 &Cube::from_string("on x=1..3,y=0..1,z=0..1".to_string()), false), Some(
                 Cube::from_string("off x=1..2,y=0..1,z=0..1".to_string()))
             );
+        }
+
+        #[test]
+        fn test_total_volume() {
+            let mut cube = Cube::from_string("on x=0..9,y=0..9,z=0..9".to_string());
+            assert_eq!(cube.total_volume(), 1000);
+
+            cube.sub_cubes.push(
+                Box::new(Cube::from_string("off x=0..2,y=0..2,z=0..2".to_string()))
+            );
+            assert_eq!(cube.total_volume(), 1000 - 27);
+
+            cube.sub_cubes[0].sub_cubes.push(
+                Box::new(Cube::from_string("on x=0..1,y=0..1,z=0..1".to_string()))
+            );
+            assert_eq!(cube.total_volume(), 1000 - 27 + 8);
         }
     }
 }
