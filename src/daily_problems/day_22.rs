@@ -1,9 +1,6 @@
 pub mod solutions {
     use std::cmp::{max, min};
-    use std::collections::HashSet;
 
-    use itertools::Itertools;
-    use itertools::Zip;
     use lazy_static::lazy_static;
     use regex::Regex;
 
@@ -25,41 +22,7 @@ pub mod solutions {
 
     impl InclusiveRange {
         fn new(min: isize, max: isize) -> InclusiveRange {
-            assert!(max >= min);
             InclusiveRange { min, max }
-        }
-
-        fn explode(&self, other: &InclusiveRange) -> Vec<InclusiveRange> {
-            if other.max < self.min || other.min > self.max {
-                return vec![self.clone()]
-            }
-
-            let mut subranges: Vec<InclusiveRange> = vec![];
-            if other.min > self.min && other.min <= self.max {
-                subranges.push(InclusiveRange::new(self.min, other.min - 1));
-            }
-
-            if other.max < self.max {
-                if subranges.len() == 1 {
-                    subranges.push(
-                        InclusiveRange::new(subranges[0].max + 1, other.max)
-                    );
-                } else {
-                    subranges.push(
-                        InclusiveRange::new(self.min, other.max)
-                    );
-                }
-            }
-
-            if subranges.len() > 0 {
-                subranges.push(
-                    InclusiveRange::new(subranges.last().unwrap().max + 1, self.max)
-                )
-            } else {
-                subranges.push(InclusiveRange::new(self.min, self.max))
-            }
-
-            subranges
         }
     }
 
@@ -140,33 +103,6 @@ pub mod solutions {
             );
         }
 
-        fn explode_into(&self, other: &Cube) -> Vec<Cube> {
-            let mut shards: Vec<Cube> = vec![];
-            for x_range in self.x.explode(&other.x) {
-                for y_range in self.y.explode(&other.y) {
-                    for z_range in self.z.explode(&other.z) {
-                        shards.push(
-                            Cube::new(
-                                self.on,
-                                x_range.min, x_range.max,
-                                y_range.min, y_range.max,
-                                z_range.min, z_range.max
-                            )
-                        )
-                    }
-                }
-            }
-
-            let mut shards_to_keep: Vec<Cube> = vec![];
-            for shard in shards.into_iter() {
-                if shard.is_disjoint(other) {
-                    shards_to_keep.push(shard);
-                }
-            }
-
-            shards_to_keep
-        }
-
         fn boundary_volume(&self) -> isize {
             (self.x.max - self.x.min + 1) * (self.y.max - self.y.min + 1) * (self.z.max - self.z.min + 1)
         }
@@ -178,18 +114,20 @@ pub mod solutions {
     }
 
 
-    fn explode_existing_cubes(existing_cubes: &Vec<Cube>, new_cube: Cube) -> Vec<Cube> {
-        let mut exploded_cubes: Vec<Cube> = vec![];
-        for existing_cube in existing_cubes.iter() {
-            exploded_cubes.extend(existing_cube.explode_into(&new_cube))
-        }
-        if new_cube.on {
-            exploded_cubes.push(new_cube)
+    fn final_contribution_from_this_cube(cube: &Cube, remaining_cubes: &[Cube]) -> usize {
+        if !cube.on {
+            return 0
         }
 
-        println!("there are {} cubes", exploded_cubes.len());
-
-        exploded_cubes
+        let mut contribution: usize = cube.boundary_volume() as usize;
+        for idx in 0usize..remaining_cubes.len() {
+            if let Some(intersection) = cube.intersection(&remaining_cubes[idx], true) {
+                contribution = contribution - final_contribution_from_this_cube(
+                &intersection, &remaining_cubes[idx + 1..],
+                )
+            }
+        }
+        contribution
     }
 
 
@@ -197,12 +135,12 @@ pub mod solutions {
         // test in bound values: 590784
         let cubes = read_input(aoc_reader);
 
-        let mut exploded_cubes: Vec<Cube> = vec![];
-        for cube in cubes {
-            exploded_cubes = explode_existing_cubes(&exploded_cubes, cube);
+        let mut total_on: usize = 0;
+        for idx in 0usize..cubes.len() {
+            total_on += final_contribution_from_this_cube(&cubes[idx], &cubes[idx + 1..])
         }
 
-        exploded_cubes.into_iter().map(|cube| cube.boundary_volume() as usize).sum()
+        total_on
     }
 
 
@@ -256,83 +194,6 @@ pub mod solutions {
                 8
             );
             assert_eq!(Cube::from_string("on x=1..1,y=1..1,z=1..1".to_string()).boundary_volume(), 1);
-        }
-
-        #[test]
-        fn test_explode_range() {
-            let sub_range = InclusiveRange::new(0, 4);
-
-            assert_eq!(
-                sub_range.explode(&InclusiveRange::new(5, 6)),
-                vec![sub_range]
-            );
-
-            assert_eq!(
-                sub_range.explode(&InclusiveRange::new(-1, 0)),
-                vec![
-                    InclusiveRange::new(0, 0),
-                    InclusiveRange::new(1, 4)
-                ]
-            );
-
-            assert_eq!(
-                sub_range.explode(&InclusiveRange::new(0, 0)),
-                vec![
-                    InclusiveRange::new(0, 0),
-                    InclusiveRange::new(1, 4)
-                ]
-            );
-
-            assert_eq!(
-                sub_range.explode(&InclusiveRange::new(1, 2)),
-                vec![
-                    InclusiveRange::new(0, 0),
-                    InclusiveRange::new(1, 2),
-                    InclusiveRange::new(3, 4)
-                ]
-            );
-
-
-            assert_eq!(
-                sub_range.explode(&InclusiveRange::new(3, 5)),
-                vec![
-                    InclusiveRange::new(0, 2),
-                    InclusiveRange::new(3, 4),
-                ]
-            );
-
-            assert_eq!(
-                sub_range.explode(&InclusiveRange::new(4, 4)),
-                vec![
-                    InclusiveRange::new(0, 3),
-                    InclusiveRange::new(4, 4),
-                ]
-            );
-
-
-
-        }
-
-        #[test]
-        fn test_explode_cubes() {
-            let cubes = Cube::from_string("on x=0..3,y=0..3,z=0..3".to_string()).explode_into(
-                &Cube::from_string("on x=4..5,y=4..5,z=4..5".to_string())
-            );
-            assert_eq!(cubes.len(), 1);
-            assert_eq!(cubes[0].boundary_volume(), 64);
-
-
-            assert_eq!(
-                Cube::from_string("on x=0..3,y=0..3,z=0..3".to_string()).explode_into(
-                    &Cube::from_string("on x=0..3,y=0..3,z=0..3".to_string())
-                ).len(), 0
-            );
-
-            assert_eq!(
-                Cube::from_string("on x=0..2,y=0..2,z=0..2".to_string()).explode_into(
-                    &Cube::from_string("off x=1..1,y=1..1,z=1..1".to_string())
-                ).len(), 26
-            );
         }
     }
 }
